@@ -11,11 +11,11 @@ Thanks to Ha Thach, RPPICOMIDI, sekigon-gonnoc and many others who made this pro
 
 ## Main Features
 
-This is an interface between a computer, up to 4 USB midi keaboards and up to 2 old 5-pin-keyboards (one as input only).
+This is an interface between a computer, up to 4 USB midi keaboards and up to 2 (old) 5-pin-keyboards (one as input only).
 
-It is possible to route any midi message to any device or to several devices at the same time (depending on choosen settings).
+It is possible to route any midi message to any device or to several devices at the same time (depending on selected settings).
 
-Several midi devices (and computer) can send midi data to one device without disturbing each other.
+Several midi devices (and a computer) can send midi data to the same device without disturbing each other.
 
 Midi clock and active sense messages can be supressed.
 
