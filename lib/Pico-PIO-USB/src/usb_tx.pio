@@ -1,0 +1,152 @@
+
+; Copyright (c) 2021-2023 sekigon-gonnoc
+; modified by georg laska (moseltronics)
+
+.define public PRE_JMP_ADR    4   ;for send_pre
+.define public DPDM_JMP_ADR   8   ;for fs-dpdm / ls-dmdp
+.define public DMDP_JMP_ADR   14  ;for fs-dmdp / ls-dpdm
+
+; USB NRZI transmitter
+; Run at 48 MHz for full-spped
+; Run at 6 MHz for low-spped
+; autopull enabled
+; isr must previously be set to jmp address
+; for dmdp pins must be output overrided
+.program usb_tx_dpdm
+.side_set 2 opt
+
+; J for fs and ls
+.define J 0b01
+; K for fs and ls
+.define K 0b10
+.define SE0 0b00
+.define SE0R 0b11
+.define BR 5                ; bit repeat limit
+.define public IRQ_COMP 0   ; complete flag bit
+.define public IRQ_EOP 1    ; EOP start flag bit
+
+start:
+    set y, BR side J
+    set pindirs, 0b11
+
+.wrap_target
+check_eop1:
+    jmp !osre load_bit1
+    mov PC,isr [1]              ; jmp address must be by caller
+
+no_eop:
+    irq IRQ_EOP side J [3]      ; =4
+    set pindirs, 0b00 ; [2]
+    irq wait IRQ_COMP
+    jmp start
+
+send_eop_dp:
+    nop side SE0 [3]   ; =8
+    irq IRQ_EOP [3]
+    nop side J
+post_eop:
+    set pindirs, 0b00 [1]
+    irq wait IRQ_COMP
+    jmp start
+
+send_eop_dm:
+    nop side SE0R [3]   ; =14
+    irq IRQ_EOP [3]
+    jmp post_eop side J
+
+load_bit1:
+    out x, 1
+    jmp !x low1
+high1:
+    jmp y-- check_eop1 side J
+    nop [2]                     ; bit stuffing
+low1:
+    set y BR side K
+
+check_eop2:
+    jmp !osre load_bit2
+    mov PC,isr [1]
+
+load_bit2:
+    out x, 1
+    jmp !x low2
+high2:
+    jmp y-- check_eop2 side K
+    nop [2]                     ; bit stuffing
+low2:
+    set y BR side J
+.wrap
+
+
+% c-sdk {
+#include "hardware/clocks.h"
+
+  static void __no_inline_not_in_flash_func(usb_fs_tx_configure_pins)(PIO pio, uint sm, uint pin_dp, uint pin_dm) {
+    //if (pin_dp < pin_dm) {
+      gpio_set_outover(pin_dp, GPIO_OVERRIDE_NORMAL); // for fullspeed
+      gpio_set_outover(pin_dm, GPIO_OVERRIDE_NORMAL);
+      pio_sm_set_out_pins(pio, sm, pin_dp, 2);
+      pio_sm_set_set_pins(pio, sm, pin_dp, 2);
+      pio_sm_set_sideset_pins(pio, sm, pin_dp);
+    //} else {
+    //  gpio_set_outover(pin_dp, GPIO_OVERRIDE_INVERT); // for fullspeed
+    //  gpio_set_outover(pin_dm, GPIO_OVERRIDE_INVERT);
+    //  pio_sm_set_out_pins(pio, sm, pin_dm, 2);
+    //  pio_sm_set_set_pins(pio, sm, pin_dm, 2);
+    //  pio_sm_set_sideset_pins(pio, sm, pin_dm);
+    //}
+  }
+
+  static void __no_inline_not_in_flash_func(usb_ls_tx_configure_pins)(PIO pio, uint sm, uint pin_dp, uint pin_dm) {
+    //if (pin_dm < pin_dp) {
+    //  gpio_set_outover(pin_dp, GPIO_OVERRIDE_NORMAL); // for lowspeed
+    //  gpio_set_outover(pin_dm, GPIO_OVERRIDE_NORMAL);
+    //  pio_sm_set_out_pins(pio, sm, pin_dm, 2);
+    //  pio_sm_set_set_pins(pio, sm, pin_dm, 2);
+    //  pio_sm_set_sideset_pins(pio, sm, pin_dm);
+    //} else {
+      gpio_set_outover(pin_dp, GPIO_OVERRIDE_INVERT); // for lowspeed
+      gpio_set_outover(pin_dm, GPIO_OVERRIDE_INVERT);
+      pio_sm_set_out_pins(pio, sm, pin_dp, 2);
+      pio_sm_set_set_pins(pio, sm, pin_dp, 2);
+      pio_sm_set_sideset_pins(pio, sm, pin_dp);
+    //}
+  }
+
+  static inline void usb_tx_fs_program_init(PIO pio, uint sm,
+                                         uint pin_dp, uint pin_dm) {
+    pio_sm_set_pins_with_mask(pio, sm, (1 << pin_dp), ((1 << pin_dp) | (1 << pin_dm)));
+
+    gpio_pull_down(pin_dp);
+    gpio_pull_down(pin_dm);
+    pio_gpio_init(pio, pin_dp);
+    pio_gpio_init(pio, pin_dm);
+
+    pio_sm_config c = usb_tx_dpdm_program_get_default_config(0);
+
+    // shifts to left, autopull, 8bit
+    sm_config_set_out_shift(&c, true, true, 8);
+
+    sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_TX);
+
+    // run at 48MHz
+    // clk_sys should be multiply of 12MHz
+    float div = (float)clock_get_hz(clk_sys) / (48000000UL);
+    sm_config_set_clkdiv(&c, div);
+
+    pio_sm_init(pio, sm, 0, &c);
+    usb_fs_tx_configure_pins(pio, sm, pin_dp, pin_dm);
+
+    // for fullspeed
+    //if (pin_dp < pin_dm) {
+      pio_sm_exec(pio, sm, pio_encode_set(pio_x, DPDM_JMP_ADR));
+    //} else {
+    //  pio_sm_exec(pio, sm, pio_encode_set(pio_x, DMDP_JMP_ADR));
+    //}
+    pio_sm_exec(pio, sm, pio_encode_mov(pio_isr, pio_x));
+
+    pio_sm_set_enabled(pio, sm, false);
+    //pio_sm_set_enabled(pio, sm, true);
+  }
+
+%}

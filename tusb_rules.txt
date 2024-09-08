@@ -1,0 +1,13 @@
+
+Device Drivers
+
+Much of the processing of the USB stack is done in an interrupt context, and care must be taken in order to ensure variables are handled in the appropriate ways by the compiler and optimizer.
+
+In particular:
+
+    Ensure that all memory-mapped registers (including packet memory) are marked as volatile. GCC’s optimizer will even combine memory access (like two 16-bit to be a 32-bit) if you don’t mark the pointers as volatile. On some architectures, this can use macros like _I , _O , or _IO.
+
+    All defined global variables are marked as static.
+
+//////////////////////////////////////////////////////////////////////
+

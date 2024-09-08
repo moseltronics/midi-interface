@@ -1,0 +1,12 @@
+[submodule "lib/Pico-PIO-USB"]
+  path = lib/Pico-PIO-USB
+  url = https://github.com/moseltronics/midi-interface/lib/Pico-PIO-USB
+[submodule "lib/midi_uart_lib"]
+	path = lib/midi_uart_lib
+	url = https://github.com/moseltronics/midi-interface/lib/midi_uart_lib
+[submodule "lib/usb_midi_host"]
+	path = lib/usb_midi_host
+	url = https://github.com/moseltronics/midi-interface/lib/usb_midi_host
+[submodule "lib/ring_buffer_lib"]
+	path = lib/ring_buffer_lib
+	url = https://github.com/moseltronics/midi-interface/lib/ring_buffer_lib

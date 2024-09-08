@@ -1,0 +1,204 @@
+; Copyright (c) 2021-2022 sekigon-gonnoc
+; modified by georg laska (moseltronics)
+
+.define public IRQ_RX_BS_ERR    1   ; bit stuffin error
+.define public IRQ_RX_EOP       2   ; eop detect flag
+.define public IRQ_RX_START     3   ; packet start flag
+
+.define public USB_RX_START_OFFSET 1
+
+; both d+/d- must be input invert overrided
+;            FS(12M)  LS(1.5M)
+; Run at     120MHz   15MHz
+; jmp_pin    d-       d+ 
+; in_pin     d+       d-
+.define BIT_REPEAT_COUNT 6      ; bit repeat counter
+
+.program usb_nrzi_rx
+
+;  32 instructions
+
+eop:
+    irq wait IRQ_RX_EOP
+start:
+    jmp pin start             ; Wait for falling edge
+    irq IRQ_RX_START [1]
+.wrap_target
+reset_B:
+    set y, BIT_REPEAT_COUNT
+new_high:
+    jmp pin pin_high_B
+    jmp !y stuffbit_B
+    in NULL,1
+sync:
+    jmp pin sync_02 [1]       ;detect desync of min. ~15% of a bit
+    jmp pin sync_02           ;correctíon value is max. 10% of a bit
+    jmp pin sync_02
+sync_01:
+    jmp reset_A [1]
+;sync
+pin_high_B:
+    mov osr,pins              ; d+ (input mapping)
+    out x,1
+    jmp x-- eop               ; both data lines zero
+    jmp y--,no_stuffbit_B [2]
+interstep:
+    jmp reset_B [1]
+no_stuffbit_B:
+    ;set x, 0x01              ;x is -1 here, so LSB is 1
+    in x,1 [1]
+    jmp new_high
+
+stuffbit_B:
+    nop [6]
+reset_A:
+    set y, BIT_REPEAT_COUNT
+new_low:
+    jmp pin pin_high_A
+    jmp y--,no_stuffbit_A
+    jmp reset_A [6]
+no_stuffbit_A:
+    set x, 0x01
+    in x,1
+    jmp new_low [5]
+
+pin_high_A:
+    mov osr,pins
+    out x,1
+    jmp x-- eop
+    jmp !y interstep [2]
+    in NULL,1 [1]
+    .wrap
+
+sync_02:
+    jmp sync_01
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+; both d+/d- must be input invert overrided
+;            FS(12M)  LS(1.5M)
+; Run at     120MHz   15MHz
+; jmp_pin    d+       d- 
+; in_pin     d-       d+
+
+.program usb_nrzi_rx_debug
+.side_set 1 opt
+
+;  32 instructions
+
+eop:
+    irq wait IRQ_RX_EOP     side 1
+start:
+    jmp pin start
+    irq IRQ_RX_START [1]
+.wrap_target
+reset_B:
+    set y, BIT_REPEAT_COUNT
+new_high:
+    jmp pin pin_high_B
+    jmp !y stuffbit_B
+    in NULL,1               side 0
+sync:
+    jmp pin sync_02 [1]
+    jmp pin sync_02
+    jmp pin sync_02
+sync_01:
+    jmp reset_A [1]
+;sync
+pin_high_B:
+    mov osr,pins              ; d+ (input mapping)
+    out x,1
+    jmp x-- eop               ; both data lines zero
+    jmp y--,no_stuffbit_B [2]
+interstep:
+    jmp reset_B [1]
+no_stuffbit_B:
+    ;set x, 0x01
+    in x,1 [1]              side 1
+    jmp new_high
+
+stuffbit_B:
+    nop [6]
+reset_A:
+    set y, BIT_REPEAT_COUNT
+new_low:
+    jmp pin pin_high_A
+    jmp y--,no_stuffbit_A
+    jmp reset_A [6]
+no_stuffbit_A:
+    set x, 0x01
+    in x,1                  side 1
+    jmp new_low [5]
+
+pin_high_A:
+    mov osr,pins
+    out x,1
+    jmp x-- eop
+    jmp !y interstep [2]
+    in NULL,1 [1]           side 0
+    .wrap
+
+sync_02:
+    jmp sync_01
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+% c-sdk {
+#include "hardware/clocks.h"
+
+#if PICO_SDK_VERSION_MAJOR < 2
+static __always_inline void pio_sm_set_jmp_pin(PIO pio, uint sm, uint jmp_pin) {
+  pio->sm[sm].execctrl =
+      (pio->sm[sm].execctrl & ~PIO_SM0_EXECCTRL_JMP_PIN_BITS) |
+      (jmp_pin << PIO_SM0_EXECCTRL_JMP_PIN_LSB);
+}
+#endif
+
+static inline void usb_rx_fs_program_init(PIO pio, uint sm, uint pin_dp, uint pin_dm, bool is_fs, int pin_debug) {
+  if (pin_dp < pin_dm) {
+    pio_sm_set_consecutive_pindirs(pio, sm, pin_dp, 2, false);
+  } else {
+    pio_sm_set_consecutive_pindirs(pio, sm, pin_dm, 2, false);
+  }
+  gpio_pull_down(pin_dp);
+  gpio_pull_down(pin_dm);
+  gpio_set_inover(pin_dp, GPIO_OVERRIDE_INVERT);
+  gpio_set_inover(pin_dm, GPIO_OVERRIDE_INVERT);
+
+  pio_sm_config c;
+
+  if (pin_debug < 0) {
+    c = usb_nrzi_rx_program_get_default_config(0);
+  } else {
+    c = usb_nrzi_rx_debug_program_get_default_config(0);
+
+    pio_sm_set_pins_with_mask(pio, sm, 0, 1 << pin_debug);
+    pio_sm_set_pindirs_with_mask(pio, sm, 1 << pin_debug, 1 << pin_debug);
+    pio_gpio_init(pio, pin_debug);
+    sm_config_set_sideset_pins(&c, pin_debug);
+  }
+
+  sm_config_set_in_pins(&c, pin_dp);  // for WAIT, IN
+  sm_config_set_jmp_pin(&c, pin_dm);  // for JMP
+
+  // Shift to right, autopull enabled, 8bit
+  sm_config_set_in_shift(&c, true, true, 8);
+  sm_config_set_fifo_join(&c, PIO_FIFO_JOIN_RX);
+
+  float div;
+  if (is_fs) {
+    div = (float)clock_get_hz(clk_sys) / (120000000);
+  } else {
+    div = (float)clock_get_hz(clk_sys) / (15000000);
+  }
+
+  sm_config_set_clkdiv(&c, div);
+
+  pio_sm_init(pio, sm, 1, &c);
+
+  //pio_sm_set_enabled(pio, sm, true);
+
+pio_sm_set_enabled(pio, sm, false);
+}
+
+%}
