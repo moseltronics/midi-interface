@@ -5,7 +5,7 @@ This project is the result of modifying existing software in order to connect se
 
 It works on a Raspberry Pi Pico Board (also on a RP 2040 Zero and maybe others) and did compile well with the Pico-SDK Version 1.51 and 2.00.
 
-Thanks to RPPICOMIDI, sekigon-gonnoc and many others who made this project possible.
+Thanks to Ha Thach, RPPICOMIDI, sekigon-gonnoc and many others who made this project possible.
 
 ![my midi interface](docs/midi_interface.JPG)
 
