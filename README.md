@@ -35,7 +35,7 @@ Midi clock and active sense messages can be supressed.
   - a modified version of sekigon-gonnoc's Pico PIO USB
     - with lower processor load
     - using one state machine on each of both PIO blocks
-    - with less synchronization (maybe a problem with bad lowspeed devices)
+    - with less synchronization (might lead to problems with bad lowspeed devices)
 
 
 ## IMPORTANT Tweaks
