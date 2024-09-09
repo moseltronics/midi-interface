@@ -17,8 +17,9 @@ It is possible to route any midi message to any device or to several devices at 
 
 Several midi devices (and a computer) can send midi data to the same device without disturbing each other.
 
-Midi clock and active sense messages can be supressed.
+Midi clock and active sense messages can be supressed (and are by default).
 
+Settings are not saved.
 
 
 ## Hardware
@@ -26,7 +27,6 @@ Midi clock and active sense messages can be supressed.
   - one optocoupler for each 'standard Midi' input (for example 6N 137)
   - a 4 x 20 display with HD44780 chip
   - a joystick switch or 5 button switches
-
 
 ## Used libraries
   - a modified version of RPPICOMIDI's usb_midi_host library
@@ -36,7 +36,7 @@ Midi clock and active sense messages can be supressed.
     - with lower processor load
     - using one state machine on each of both PIO blocks
     - with less synchronization (might lead to problems with bad lowspeed devices)
-
+  - a modified version of the midi device library inside TinyUSB
 
 ## IMPORTANT Tweaks
 
@@ -71,8 +71,20 @@ Pico PIO USB must have been activated (once) by
   28      34      Display RS
 ```
 
-## Display Info:
+## Customize Settings
 
+- adjust max. number of usb midi devices
+  in file lib/Pico-PIO-USB/src/pio_usb_configuration.h
+  default: #define PIO_USB_ROOT_PORT_CNT 4
+  (less may reduce software load)
+- determine the USB dp pins
+  in file midi_interface.c
+  for example: #define PIO_USB1_DP_PIN 16
+- change the behavior after start
+  in file midi_interface.c
+  mode, m1_mode ... u4_mode (see below)
+
+## Display Info
 ```
     RW hardcoded to GND (IMPORTANT !)
     data  -> GPIO 8-15  -> (0xFF00)
@@ -113,7 +125,7 @@ Pico PIO USB must have been activated (once) by
 ```
   u1_mode ... u4_mode, m1_mode, m2_mode, c_mode
         value     target
-        1         (U1)
+        1         U1
         2         U2
         4         U3
         8         U4
