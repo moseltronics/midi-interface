@@ -9,6 +9,7 @@ Thanks to Ha Thach, RPPICOMIDI, sekigon-gonnoc and many others who made this pro
 
 ![my midi interface](docs/midi_interface.JPG)
 
+
 ## Main Features
 
 This is an interface between a computer, up to 4 USB midi keaboards and up to 2 (old) 5-pin-keyboards (one as input only).
@@ -28,6 +29,7 @@ Settings are not saved.
   - a 4 x 20 display with HD44780 chip
   - a joystick switch or 5 button switches
 
+
 ## Used libraries
   - a modified version of RPPICOMIDI's usb_midi_host library
   - RPPICOMIDI's midi_uart_lib library
@@ -37,6 +39,7 @@ Settings are not saved.
     - using one state machine on each of both PIO blocks
     - with less synchronization (might lead to problems with bad lowspeed devices)
   - a modified version of the midi device library inside TinyUSB
+
 
 ## IMPORTANT Tweaks
 
@@ -71,18 +74,16 @@ Pico PIO USB must have been activated (once) by
   28      34      Display RS
 ```
 
+
 ## Customize Settings
 
 - adjust max. number of usb midi devices
-  in file lib/Pico-PIO-USB/src/pio_usb_configuration.h
-  default: #define PIO_USB_ROOT_PORT_CNT 4
-  (less may reduce software load)
+  <br>in file lib/Pico-PIO-USB/src/pio_usb_configuration.h (default: #define PIO_USB_ROOT_PORT_CNT 4, less may reduce software load)
 - determine the USB dp pins
-  in file midi_interface.c
-  for example: #define PIO_USB1_DP_PIN 16
+  <br>in file midi_interface.c (for example: #define PIO_USB1_DP_PIN 16)
 - change the behavior after start
-  in file midi_interface.c
-  mode, m1_mode ... u4_mode (see below)
+  <br>in file midi_interface.c (mode, m1_mode ... u4_mode, see below)
+
 
 ## Display Info
 ```
@@ -93,6 +94,7 @@ Pico PIO USB must have been activated (once) by
     total               -> (0x1000FFC0)
 ```
 
+
 ## PIO-USB
 ```
     USB1 -> GPIO 16-17  -> (0x10000 + 0x20000)
@@ -100,6 +102,7 @@ Pico PIO USB must have been activated (once) by
     USB3 -> GPIO 2-3    -> (0x4 + 0x8)
     USB4 -> GPIO 6-7    -> (0x40 + 0x80)
 ```
+
 
 ## Switches:
 ```
@@ -111,7 +114,9 @@ Pico PIO USB must have been activated (once) by
     total:                    -> (0x7C0000)
 ```
 
+
 ## SOFTWARE
+
 
 ### "mode" variable:
 ```
@@ -120,6 +125,7 @@ Pico PIO USB must have been activated (once) by
     0x10    Tic on/off
     0xE0:   (Switch Mode) 20:Channel 40:Voice 60:Bank 80:Effect A0:Misc C0: E0:
 ```
+
 
 ### routing variables (u=USB, m=midi, c=computer):
 ```
@@ -136,6 +142,7 @@ Pico PIO USB must have been activated (once) by
           0x40: detail settings U
           0x80: detail settings M / C
 ```
+
 
 ### variable "sw_flag":
 ```
