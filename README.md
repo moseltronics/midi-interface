@@ -131,16 +131,16 @@ Pico PIO USB must have been activated (once) by
 ```
   u1_mode ... u4_mode, m1_mode, m2_mode, c_mode
         value     target
-        1         U1
-        2         U2
-        4         U3
-        8         U4
-        10        M1
-        20        C
+        0x01        U1
+        0x02        U2
+        0x04        U3
+        0x08        U4
+        0x10        M1
+        0x20        C
 
   c_mode & 0xC0:
-          0x40: detail settings U
-          0x80: detail settings M / C
+        0x40: detail settings U
+        0x80: detail settings M / C
 ```
 
 
