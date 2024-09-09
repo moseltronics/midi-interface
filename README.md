@@ -3,7 +3,7 @@
 
 This project is the result of modifying existing software in order to connect several midi devices together and to a computer without any artifacts.
 
-It works on a Raspberry Pi Pico Board (also on a RP 2040 Zero and maybe others) and did compile well with the Pico-SDK Version 1.51 and 2.00.
+It works on a Raspberry Pi Pico Board (also on a RP 2040 Zero and others) and did compile well with the Pico-SDK Version 1.51 and 2.00.
 
 Thanks to Ha Thach, RPPICOMIDI, sekigon-gonnoc and many others who made this project possible.
 
@@ -22,12 +22,14 @@ Midi clock and active sense messages can be supressed (and are by default).
 
 Settings are not saved.
 
+UART debug is disabled because both UART's are used for midi.
+
 
 ## Hardware
   - Raspberry Pi Pico Board (RP2040)
   - one optocoupler for each 'standard Midi' input (for example 6N 137)
   - a 4 x 20 display with HD44780 chip
-  - a joystick switch or 5 button switches
+  - a joystick switch or 5 buttons
 
 
 ## Used libraries
@@ -78,7 +80,7 @@ Pico PIO USB must have been activated (once) by
 ## Customize Settings
 
 - adjust max. number of usb midi devices
-  <br>in file lib/Pico-PIO-USB/src/pio_usb_configuration.h (default: #define PIO_USB_ROOT_PORT_CNT 4, less may reduce software load)
+  <br>in file lib/Pico-PIO-USB/src/pio_usb_configuration.h (default: #define PIO_USB_ROOT_PORT_CNT 4, less may reduce processor load)
 - determine the USB dp pins
   <br>in file midi_interface.c (for example: #define PIO_USB1_DP_PIN 16)
 - change the behavior after start
@@ -106,7 +108,7 @@ Pico PIO USB must have been activated (once) by
 
 ## Switches:
 ```
-    5 switches are needed (GPIO 18-22). Can be a joystick switch.
+    5 buttons are needed or a joystick (GPIO 18-22).
     "ON" means: connected to GND.
     left-right      -> 18-19  -> (0x40000 + 0x80000)
     up-down         -> 20-21  -> (0x100000 + 0x200000)
@@ -116,7 +118,6 @@ Pico PIO USB must have been activated (once) by
 
 
 ## SOFTWARE
-
 
 ### "mode" variable:
 ```
