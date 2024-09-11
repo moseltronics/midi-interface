@@ -7,7 +7,7 @@ It works on a Raspberry Pi Pico Board (also on a RP 2040 Zero and others) and di
 
 Thanks to Ha Thach, RPPICOMIDI, sekigon-gonnoc and many others who made this project possible.
 
-![my midi interface](docs/midi_interface.JPG)![midi_connections](docs/MIDI-in-out.png | width=350)
+![my midi interface](docs/midi_interface.JPG)
 
 
 ## Main Features
@@ -30,6 +30,8 @@ UART debug is disabled because both UART's are used for midi.
   - one optocoupler for each 'standard Midi' input (for example 6N 137)
   - a 4 x 20 display with HD44780 chip
   - a joystick switch or 5 buttons
+
+![midi connection](docs/MIDI-in-out-k.png)
 
 
 ## Used libraries
