@@ -7,7 +7,7 @@ It works on a Raspberry Pi Pico Board (also on a RP 2040 Zero and others) and di
 
 Thanks to Ha Thach, RPPICOMIDI, sekigon-gonnoc and many others who made this project possible.
 
-![my midi interface](docs/midi_interface.JPG)![midi_connections](docs/MIDI-in-out.png)
+![my midi interface](docs/midi_interface.JPG)![midi_connections](docs/MIDI-in-out.png | width=350)
 
 
 ## Main Features
