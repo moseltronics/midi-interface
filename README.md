@@ -3,7 +3,7 @@
 
 This project is the result of modifying existing software in order to connect several USB and non-USB midi devices together and to a computer without any artifacts.
 
-It works only on a Raspberry Pi Pico Board (also on a RP 2040 Zero and others) and did compile well with the Pico-SDK Version 1.51 and 2.00.
+It works only on a Raspberry Pi Pico Board (also on a RP 2040 Zero and others) and did compile well with the Pico-SDK Version 1.51 and 2.00, TinyUSB 0.16.0.
 
 Thanks to Ha Thach, RPPICOMIDI, sekigon-gonnoc and many others who made this project possible.
 
