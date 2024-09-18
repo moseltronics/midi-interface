@@ -82,41 +82,34 @@ Pico PIO USB must have been activated (once) by
 
 ## Simple Menu
 
-left/right:
------------
-8 routing presets:
-1: U1 <> All, C > All
-2: U2 <> All, C > All
-3: U3 <> All, C > All
-4: U4 <> All, C > All
-5: C+U1+U4 <> All
-6: MidiA <> All
-7: MidiA,B <> U1-U4
-8: C+M+U2 <> All
+### left/right:
+<br>8 routing presets:
+<br>1: U1 <> All, C > All
+<br>2: U2 <> All, C > All
+<br>3: U3 <> All, C > All
+<br>4: U4 <> All, C > All
+<br>5: C+U1+U4 <> All
+<br>6: MidiA <> All
+<br>7: MidiA,B <> U1-U4
+<br>8: C+M+U2 <> All
 
-up:
----
+### up:
 Send MIDI events
 (a bit tricky, maybe not usefull ...)
 
-down (2 levels):
-----------------
+### down (2 levels):
 detailed settings
 
-center + right:
----------------
+### center + right:
 toggle cable mode (cable out = cable in)
 
-center + left:
-------------------
+### center + left:
 escape to base level
 
-center + up:
------------------
+### center + up:
 toggle on/off midi clock + active sense
 
-center + down:
----------------------
+### center + down:
 go one level back
 
 
