@@ -83,7 +83,7 @@ Pico PIO USB must have been activated (once) by
 ## Simple Menu
 
 ### left/right:
-<br>8 routing presets:
+8 routing presets:
 <br>1: U1 <> All, C > All
 <br>2: U2 <> All, C > All
 <br>3: U3 <> All, C > All
