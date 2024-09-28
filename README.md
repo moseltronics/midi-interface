@@ -54,9 +54,9 @@ Display RW Pin MUST be hardcoded to GND
 
 Optocoupler 6N 137 gives out 5 V, it MUST be converted to 3,3 V (with 2 resistors for example)
 
-USB data lines (dp und dm) must be connected to GND by a 15 k resistor
+PIO USB data lines (dp und dm) must be connected to GND by a 15 k resistor
 
-Content of lib directory "usb_midi_device" must be copied to .../tinyusb/src/class/midi
+PIO USB host ports must provide 5V. It is a good idea to buffer the voltage with a capacitor of some 100 µF.
 
 Pico PIO USB must have been activated (once) by
   "python3 tools/get_deps.py rp2040"
